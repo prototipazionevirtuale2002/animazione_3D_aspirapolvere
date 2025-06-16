@@ -1,57 +1,126 @@
-<script>
-  const model = document.querySelector('#model');
-  const btn = document.getElementById('playAnimations');
-  const loader = document.getElementById('loader');
-  const progressBar = document.getElementById('progressBar');
-  const loadingText = document.getElementById('loadingText');
-
-  loader.style.display = 'block';
-  loadingText.style.display = 'block';
-
-  model.addEventListener('progress', (event) => {
-    if (event.detail.totalProgress !== undefined) {
-      const percent = Math.floor(event.detail.totalProgress * 100);
-      progressBar.style.width = percent + '%';
-      loadingText.textContent = `Caricamento modello... ${percent}%`;
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>Aspirapolvere 3D</title>
+  <script type="module" src="https://unpkg.com/@google/model-viewer@3.3.0"></script>
+  <style>
+    body, html {
+      margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden;
+      background-color: #222;
+      font-family: Arial, sans-serif;
+      color: white;
     }
-  });
-
-  model.addEventListener('load', () => {
-    progressBar.style.width = '100%';
-    loadingText.textContent = `Caricamento completato!`;
-
-    setTimeout(() => {
-      loader.style.display = 'none';
-      loadingText.style.display = 'none';
-      btn.style.display = 'block';
-    }, 500);
-  });
-
-  let activeAnimations = [];
-
-  btn.addEventListener('click', () => {
-    const animations = model.availableAnimations;
-    if (!animations || animations.length === 0) {
-      alert('Nessuna animazione disponibile.');
-      return;
+    model-viewer {
+      width: 100%; height: 100%;
+      display: block;
     }
+    #playAnimations {
+      position: absolute;
+      top: 10px; left: 10px;
+      z-index: 10;
+      padding: 8px 16px;
+      font-size: 16px;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      display: none;
+    }
+    #loader {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 60%;
+      height: 20px;
+      border: 2px solid #555;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #333;
+      z-index: 20;
+    }
+    #progressBar {
+      height: 100%;
+      width: 0%;
+      background: #28a745;
+      transition: width 0.3s ease;
+    }
+    #loadingText {
+      position: absolute;
+      top: calc(50% + 25px);
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 14px;
+      color: #ccc;
+      z-index: 20;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
 
-    // Ferma animazioni precedenti
-    activeAnimations.forEach(name => model.pauseAnimation(name));
-    activeAnimations = [];
+  <button id="playAnimations">Avvia tutte le animazioni</button>
 
-    // Avvia tutte le animazioni e registra quali sono attive
-    animations.forEach(name => {
-      model.playAnimation(name, false); // false = non in loop
-      activeAnimations.push(name);
+  <div id="loader">
+    <div id="progressBar"></div>
+  </div>
+  <div id="loadingText">Caricamento modello... 0%</div>
+
+  <model-viewer
+    id="model"
+    src="animazione_web.glb"
+    alt="Aspirapolvere 3D"
+    camera-controls
+    auto-rotate
+    exposure="1"
+    environment-image="neutral"
+    shadow-intensity="1"
+  ></model-viewer>
+
+  <script>
+    const model = document.querySelector('#model');
+    const btn = document.getElementById('playAnimations');
+    const loader = document.getElementById('loader');
+    const progressBar = document.getElementById('progressBar');
+    const loadingText = document.getElementById('loadingText');
+
+    loader.style.display = 'block';
+    loadingText.style.display = 'block';
+
+    model.addEventListener('progress', (event) => {
+      if (event.detail.totalProgress !== undefined) {
+        const percent = Math.floor(event.detail.totalProgress * 100);
+        progressBar.style.width = percent + '%';
+        loadingText.textContent = `Caricamento modello... ${percent}%`;
+      }
     });
 
-    btn.style.display = 'none';
+    model.addEventListener('load', () => {
+      progressBar.style.width = '100%';
+      loadingText.textContent = `Caricamento completato!`;
 
-    // Calcola la durata massima delle animazioni per sapere quando riabilitare il bottone
-    const maxDuration = model.duration ?? 5; // fallback se non definito
-    setTimeout(() => {
-      btn.style.display = 'block';
-    }, maxDuration * 1000);
-  });
-</script>
+      setTimeout(() => {
+        loader.style.display = 'none';
+        loadingText.style.display = 'none';
+        btn.style.display = 'block';
+      }, 500);
+    });
+
+    btn.addEventListener('click', () => {
+      const animations = model.availableAnimations;
+      if (!animations || animations.length === 0) {
+        alert('Nessuna animazione disponibile.');
+        return;
+      }
+
+      animations.forEach(name => {
+        model.playAnimation(name, false); // false = non loop
+      });
+
+      btn.style.display = 'none';
+    });
+  </script>
+
+</body>
+</html>
