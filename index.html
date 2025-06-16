@@ -2,92 +2,95 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <title>Modello 3D con loading e animazioni</title>
+  <title>Aspirapolvere 3D</title>
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <style>
     body, html {
-      margin: 0; padding: 0; height: 100vh; background: #111; color: white; font-family: Arial;
-      display: flex; flex-direction: column;
+      margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden;
+      background-color: #222;
+      font-family: Arial, sans-serif;
+      color: white;
     }
     model-viewer {
-      flex-grow: 1;
-      background: #222;
-      width: 100%;
-      height: 100%;
+      width: 100%; height: 100%;
+      display: block;
+      background-color: #222;
     }
-    #loaderContainer {
+    #playAnimations {
+      position: absolute;
+      top: 10px; left: 10px;
+      z-index: 10;
+      padding: 8px 16px;
+      font-size: 16px;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      display: none; /* nascosto fino a caricamento completato */
+    }
+    #loader {
       position: absolute;
       top: 50%; left: 50%;
       transform: translate(-50%, -50%);
       width: 60%;
-      max-width: 400px;
-      background: #333;
-      border-radius: 8px;
+      height: 20px;
+      border: 2px solid #555;
+      border-radius: 10px;
       overflow: hidden;
-      box-shadow: 0 0 15px #28a745;
-      user-select: none;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      z-index: 10;
+      background: #333;
+      z-index: 20;
     }
     #progressBar {
-      height: 20px;
-      width: 0;
+      height: 100%;
+      width: 0%;
       background: #28a745;
       transition: width 0.3s ease;
     }
     #loadingText {
-      padding: 8px 0;
-      font-size: 14px;
-      text-align: center;
-    }
-    #playAnimations {
       position: absolute;
-      top: 15px; left: 15px;
-      padding: 10px 20px;
-      font-size: 16px;
-      background: #28a745;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      z-index: 11;
-      display: none;
+      top: calc(50% + 25px);
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 14px;
+      color: #ccc;
+      z-index: 20;
+      user-select: none;
     }
   </style>
 </head>
 <body>
 
-<button id="playAnimations">Avvia animazioni</button>
+<button id="playAnimations">Avvia tutte le animazioni</button>
 
-<div id="loaderContainer">
+<div id="loader">
   <div id="progressBar"></div>
-  <div id="loadingText">Caricamento modello... 0%</div>
 </div>
+<div id="loadingText">Caricamento modello... 0%</div>
 
 <model-viewer
   id="model"
   src="animazione_web.glb"
-  alt="Animazione Aspirapolvere 3D"
+  alt="Aspirapolvere 3D"
   camera-controls
+  exposure="1"
   environment-image="neutral"
   shadow-intensity="1"
-  exposure="1"
 ></model-viewer>
 
 <script>
   const model = document.querySelector('#model');
-  const loaderContainer = document.getElementById('loaderContainer');
+  const btn = document.getElementById('playAnimations');
+  const loader = document.getElementById('loader');
   const progressBar = document.getElementById('progressBar');
   const loadingText = document.getElementById('loadingText');
-  const playBtn = document.getElementById('playAnimations');
 
-  playBtn.style.display = 'none';
-  loaderContainer.style.display = 'flex';
+  btn.style.display = 'none';
+  loader.style.display = 'block';
+  loadingText.style.display = 'block';
 
-  // Usa l'evento 'progress' di model-viewer, che ha la proprietà detail.totalProgress
   model.addEventListener('progress', (event) => {
-    if (event.detail && typeof event.detail.totalProgress === 'number') {
+    if(event.detail.totalProgress !== undefined){
       const percent = Math.floor(event.detail.totalProgress * 100);
       progressBar.style.width = percent + '%';
       loadingText.textContent = `Caricamento modello... ${percent}%`;
@@ -96,24 +99,22 @@
 
   model.addEventListener('load', () => {
     progressBar.style.width = '100%';
-    loadingText.textContent = 'Caricamento completato!';
+    loadingText.textContent = `Caricamento completato!`;
 
     setTimeout(() => {
-      loaderContainer.style.display = 'none';
-      playBtn.style.display = 'block';
+      loader.style.display = 'none';
+      loadingText.style.display = 'none';
+      btn.style.display = 'block';
     }, 500);
   });
 
-  playBtn.addEventListener('click', () => {
+  btn.addEventListener('click', () => {
     if (model.availableAnimations.length === 0) {
       alert('Nessuna animazione disponibile.');
       return;
     }
-    // Riproduce tutte le animazioni disponibili contemporaneamente
-    model.availableAnimations.forEach(anim => {
-      model.playAnimation(anim);
-    });
-    playBtn.style.display = 'none';
+    model.play();  // Avvia tutte le animazioni
+    btn.style.display = 'none';
   });
 </script>
 
