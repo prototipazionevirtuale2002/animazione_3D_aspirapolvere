@@ -1,34 +1,135 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Modello 3D Aspirapolvere</title>
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <style>
     body, html {
-      margin: 0; padding: 0;
-      width: 100vw; height: 100vh;
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      height: 100vh;
       overflow: hidden;
-      background: #111;
+      background-color: #111;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-family: Arial, sans-serif;
     }
     model-viewer {
-      width: 100%; height: 100%;
+      width: 100%;
+      height: 100%;
+      flex-grow: 1;
+      background-color: #222;
+    }
+    #loaderContainer {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 60%;
+      max-width: 400px;
+      transform: translate(-50%, -50%);
+      background: #333;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 0 10px #28a745;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      user-select: none;
+      z-index: 10;
+    }
+    #progressBar {
+      height: 20px;
+      width: 0%;
+      background: #28a745;
+      transition: width 0.3s ease;
+    }
+    #loadingText {
+      padding: 8px;
+      font-size: 14px;
+      text-align: center;
+    }
+    #playAnimations {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background: #28a745;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      z-index: 11;
+      display: none; /* nascosto fino al caricamento */
     }
   </style>
 </head>
 <body>
 
+<button id="playAnimations">Avvia animazioni</button>
+
+<div id="loaderContainer">
+  <div id="progressBar"></div>
+  <div id="loadingText">Caricamento modello... 0%</div>
+</div>
+
 <model-viewer
+  id="model"
   src="animazione_web.glb"
-  alt="Animazione 3D"
+  alt="Animazione Aspirapolvere 3D"
   camera-controls
-  auto-rotate
-  animation-name="cover_motoreAction"
-  autoplay
-  exposure="1"
-  environment-image="neutral"
   shadow-intensity="1"
-></model-viewer>
+  environment-image="neutral"
+  exposure="1">
+</model-viewer>
+
+<script>
+  const model = document.querySelector('#model');
+  const loaderContainer = document.getElementById('loaderContainer');
+  const progressBar = document.getElementById('progressBar');
+  const loadingText = document.getElementById('loadingText');
+  const playBtn = document.getElementById('playAnimations');
+
+  // Mostra loader e nasconde bottone all’inizio
+  loaderContainer.style.display = 'flex';
+  playBtn.style.display = 'none';
+
+  // Evento caricamento progressivo
+  model.addEventListener('progress', (event) => {
+    if (event.detail.totalProgress !== undefined) {
+      const percent = Math.floor(event.detail.totalProgress * 100);
+      progressBar.style.width = percent + '%';
+      loadingText.textContent = `Caricamento modello... ${percent}%`;
+    }
+  });
+
+  // Quando il modello è caricato completamente
+  model.addEventListener('load', () => {
+    progressBar.style.width = '100%';
+    loadingText.textContent = 'Caricamento completato!';
+
+    // Nascondi loader, mostra bottone dopo mezzo secondo
+    setTimeout(() => {
+      loaderContainer.style.display = 'none';
+      playBtn.style.display = 'block';
+    }, 500);
+  });
+
+  // Al click del bottone, fa partire tutte le animazioni
+  playBtn.addEventListener('click', () => {
+    if (model.availableAnimations.length === 0) {
+      alert('Nessuna animazione disponibile.');
+      return;
+    }
+    // Fa partire tutte le animazioni disponibili
+    model.availableAnimations.forEach(anim => model.playAnimation(anim));
+    playBtn.style.display = 'none';
+  });
+</script>
 
 </body>
 </html>
